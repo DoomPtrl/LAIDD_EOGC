@@ -1,0 +1,117 @@
+{
+    "database": {
+        "bucket_size": 8192,
+        "enzyme": {
+            "missed_cleavages": 2,
+            "min_len": 7,
+            "max_len": 50,
+            "cleave_at": "KR",
+            "restrict": "P",
+            "c_terminal": true,
+            "semi_enzymatic": false
+        },
+        "fragment_min_mz": 100.0,
+        "fragment_max_mz": 1500.0,
+        "peptide_min_mass": 500.0,
+        "peptide_max_mass": 5000.0,
+        "ion_kinds": [
+            "b",
+            "y"
+        ],
+        "min_ion_index": 2,
+        "max_variable_mods": 2,
+        "static_mods": {
+            "C": 57.0214,
+            "^": 144.1021,
+            "K": 144.1021
+        },
+        "variable_mods": {
+            "M": 15.9949,
+            "N": 0.9840
+        },
+        "decoy_tag": "rev_",
+        "generate_decoys": true,
+        "fasta": "/data/Storage_DAS03/home3/menteeE/minsea/human_contam_20240723.fasta"
+    },
+    "precursor_tol": {
+        "ppm": [-10,10]
+    },
+    "fragment_tol": {
+        "ppm": [-10,10]
+    },
+    "precursor_charge": [2, 6],
+    "isotope_errors": [0,2],
+    "wide_window": false,
+    "chimera": false,
+    "report_psms": 1,
+
+    "deisotope": true,
+    "min_peaks": 15,
+    "max_peaks": 150,
+    "min_matched_peaks": 4,
+    "max_fragment_charge": 1,
+
+    "quant": {{
+    "database": {
+        "bucket_size": 8192,
+        "enzyme": {
+            "missed_cleavages": 2,
+            "min_len": 7,
+            "max_len": 50,
+            "cleave_at": "KR",
+            "restrict": "P",
+            "c_terminal": true,
+            "semi_enzymatic": false
+        },
+        "fragment_min_mz": 100.0,
+        "fragment_max_mz": 1500.0,
+        "peptide_min_mass": 500.0,
+        "peptide_max_mass": 5000.0,
+        "ion_kinds": [
+            "b",
+            "y"
+        ],
+        "min_ion_index": 2,
+        "max_variable_mods": 2,
+        "static_mods": {
+            "C": 57.0214,
+            "^": 144.1021,
+            "K": 144.1021
+        },
+        "variable_mods": {
+            "M": 15.9949,
+            "N": 0.9840
+        },
+        "decoy_tag": "rev_",
+        "generate_decoys": true,
+        "fasta": "/data/Storage_DAS03/home3/menteeE/minsea/human_contam_20240723.fasta"
+    },
+    "precursor_tol": {
+        "ppm": [-10,10]
+    },
+    "fragment_tol": {
+        "ppm": [-10,10]
+    },
+    "precursor_charge": [2, 6],
+    "isotope_errors": [0,2],
+    "wide_window": false,
+    "chimera": false,
+    "report_psms": 1,
+
+    "deisotope": true,
+    "min_peaks": 15,
+    "max_peaks": 150,
+    "min_matched_peaks": 4,
+    "max_fragment_charge": 1,
+
+    "quant": {
+        "tmt": {
+            "User": [114.1107,115.1077,116.1111,117.1144]
+        },
+        "tmt_settings": {
+            "level": 2,
+            "sn": false
+        }
+    },
+    "mzml_paths": []
+}
