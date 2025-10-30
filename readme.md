@@ -1,135 +1,109 @@
-# LAIDD Mentoring Project – Early Onset Gastric Cancer Multi-omics
+# LAIDD Mentoring Project — Early-Onset Gastric Cancer Multi-omics
 
-This repository captures the analysis code and intermediate artefacts we produced during the LAIDD mentoring project on early onset gastric cancer (EOGC). Our goals were twofold:
+This repository houses the code and processed artefacts from the LAIDD mentoring project focused on multi-omics characterisation of early-onset gastric cancer (EOGC). Our work spans:
 
-1. **Reproduce the key figures** from Mun et al., 2019, “Proteogenomic Characterization of Human Early-Onset Gastric Cancer”.
-2. **Extend the study with new deconvolution experiments** that integrate TCGA cohorts and our EOGC single-cell resources.
+1. Reproducing figures from **Mun et al., 2019** (*Proteogenomic Characterization of Human Early-Onset Gastric Cancer*).
+2. Extending the study with **bulk and single-cell deconvolution** across TCGA STAD and our EOGC cohort.
 
-The repo is organized so you can follow the original workflow end-to-end—from raw data processing to the final deconvolution outputs—and adapt individual stages for future cohorts.
+The repo has been reorganised to follow the life cycle of the analysis: ingest & QC raw data → reproduce published figures → perform new deconvolution experiments.
 
 ---
 
-## Repository Layout
+## Repository Structure
 
-| Path | Description |
+| Path | Highlights |
 | --- | --- |
-| `preprocessing/` | Scripts and notebooks for data intake, QC, and harmonisation of bulk and single-cell inputs prior to downstream analyses (e.g. sample filtering, batch alignment, gene ID mapping). |
-| `fig/` | Code used to recreate the figures from Mun et al., 2019. Each figure subdirectory contains the scripts and helper functions required to regenerate the panels referenced in the paper. |
-| `deconvolution/` | All deconvolution work: CIBERSORTx runs, EcoTyper workflows, and benchmarking notebooks comparing TCGA stomach cancer samples with our EOGC cohorts. |
-| `scripts/` | Shared utilities, including recent additions such as:<br>• `create_cibersortx_reference.py` – build single-cell reference matrices from 10x data.<br>• `make_signature_cpm.R` – generate Seurat-based CPM signature matrices.<br>• `make_cibersort_pheno.R`, `make_fpkm_from_counts.R` – helper scripts for mixture formatting. |
-| `given_data/` | Static inputs distributed with the project (e.g. processed TCGA matrices, 10x count matrices, annotation tables). |
-| `datasets/`, `outputs/` | Derived data products. `datasets/` stores curated analysis-ready sets; `outputs/` houses exported matrices, figures, and tables generated during the project. |
-| `config_*.yml`, `EcoTyper_*` | Configuration files and driver scripts used when running EcoTyper discovery and recovery pipelines. |
+| `Data preprocessing/` | End-to-end processing pipelines for incoming data.<br> • `proteomics/` — shell scripts, JSON configs, and R notebooks used to convert raw MS files (RAW→mzML), run SAGE, and assemble global, glyco, and phospho proteomic matrices.<br> • `RNAseq/` — Snakemake workflow (`Snakefile`, `config.yaml`, `snakemake.sh`) for RNA-seq alignment, quantification, and QC. |
+| `Analysis/` | R scripts that recreate figures and summary analyses from Mun et al. (e.g. `Clustering2.R`, `fig1a_nonsynonymous_mut_gene.R`, `6_mRNA-protein correlation.R_251026`). Outputs are written to the same directory or to user-specified paths inside the scripts. |
+| `Deconvolution/` | Artefacts and driver scripts for EcoTyper / CIBERSORTx runs.<br> • `TCGA/` — TCGA-only runs (`config_discovery_scRNA.yml`, `scRNA_annotation_input.txt`, EcoTyper archives).<br> • `TCGA_EOGC/` — experiments on our in-house cohort (bulk mixtures, EcoTyper outputs).<br> • `TCGA_EOGC_combined/` — combined-cohort inputs (e.g. `bulk_counts_CIBERSORTx.txt`, merged signatures, driver script `ecotyper.R`). |
+| `README.md` (this file) | Project overview, quick start, and workflow guidance. |
 
-> **Tip:** Use the README files inside each major subdirectory (when present) for run-specific details or parameter choices.
+Large intermediate files (e.g. zipped EcoTyper outputs) are preserved for reproducibility but can be regenerated from the documented pipelines if storage is constrained.
 
 ---
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
-- **R ≥ 4.2** with packages listed in `install_required_packages.R` (Seurat, tidyverse, Matrix, etc.).
-- **Python ≥ 3.9** with `numpy`, `pandas`, `scipy`, and `scanpy` if you plan to extend the preprocessing or deconvolution workflows.
-- Access to TCGA and EOGC source data (raw or prealigned), plus the GDC or GEO credentials if you intend to re-download.
-
-### Environment Setup
-1. Clone the repository and move into it:
-   ```bash
-   git clone <repo-url>
-   cd <repo>
-   ```
-2. Install R dependencies (one-time):
-   ```bash
-   Rscript install_required_packages.R
-   ```
-3. (Optional) Set up a Python virtual environment and install the common utilities:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-   pip install -r requirements.txt  # create if you maintain Python-based tooling
-   ```
-
-### Data Expectations
-- **Preprocessed resources** should sit in `given_data/` (e.g. `TCGA_STAD_RNA_count_matrix.csv`, `10X_Counts/`, `major_celltypes.txt`).
-- Use `preprocessing/` scripts to regenerate these inputs from raw FASTQs or Count matrices when necessary.
-- Generated deconvolution outputs (signature matrices, mixture CPMs, phenotypes) are written under `outputs/`.
-
----
-
-## Reproducing the Analyses
-
-### 1. Preprocessing
-1. Review the entry point scripts in `preprocessing/` (e.g. `01_download_tcga.R`, `02_qc_eogc.ipynb`—actual filenames may vary).
-2. Run the pipeline to regenerate harmonised expression matrices and metadata. Each script documents required command-line arguments or configuration YAML files.
-
-### 2. Figure Recreation (Mun et al., 2019)
-1. Navigate to `fig/figure_X/`.
-2. Execute the scripts/notebooks matching the panel of interest. Most figures depend on the outputs from `preprocessing/`.
-3. Generated plots are written to `outputs/figures/` (or the directory specified inside each script).
-
-### 3. Deconvolution Experiments
-1. **Bulk mixture formatting**: Use `scripts/make_signature_cpm.R` and `scripts/make_cibersort_pheno.R` to convert bulk counts to CPM/FPKM and to build phenotype tables.
-2. **Single-cell references**: Create a barcode-level reference using:
-   ```bash
-   python scripts/create_cibersortx_reference.py \
-     --matrix given_data/10X_Counts/matrix.mtx.gz \
-     --features given_data/10X_Counts/features.tsv.gz \
-     --barcodes given_data/10X_Counts/barcodes.tsv.gz \
-     --output outputs/cibersortx_reference.tsv \
-     --chunk-size 64
-   ```
-3. **EcoTyper runs**: Update the appropriate `config_*.yml` file, then invoke the EcoTyper `R` driver (e.g. `EcoTyper_discovery_bulk.R`). Outputs will appear under `DiscoveryOutput*/` and `RecoveryOutput/`.
-4. **Benchmarking & visualisation**: Notebooks in `deconvolution/` compare TCGA STAD and EOGC results, explore cell-state shifts, and summarise immune microenvironment features.
-
-### 4. Archiving Outputs
-- Place final tables, figures, and logs inside `outputs/` subfolders.
-- Update your lab notebook or shared documentation with pointers to relevant commits and generated artefacts.
-
----
-
-## Key Results Snapshot
-
-- **Figure reproduction**: Successfully recreated the main proteogenomic integration plots from Mun et al., demonstrating concordant clustering between our data and the published study.
-- **TCGA vs EOGC deconvolution**: Produced CIBERSORTx signature matrices from EOGC single cells and CPM mixtures from TCGA STAD bulk data, enabling cross-cohort immune infiltration comparisons.
-- **EcoTyper state discovery**: Ran discovery and recovery modules to profile ecosystem states in both datasets, capturing tumour microenvironment heterogeneity beyond immune subsets.
-
-Add new highlights here as the project evolves (e.g. additional cohorts, validation experiments, or publications).
-
----
-
-## Contributing & Issue Tracking
-
-- Open issues or enhancement ideas via the project tracker (GitHub Issues / internal tracker).
-- Use feature branches when adding new analysis modules; document inputs, outputs, and parameters in the corresponding directory README.
-- Keep large intermediate files out of version control—store them in `outputs/` with `.gitignore` rules or in shared storage (e.g. Box, AWS S3).
-
----
-
-## Citation & Acknowledgements
-
-If you use this repository or derived outputs in publications or presentations, please cite:
-
-- Mun, D.-G. *et al.* (2019). **Proteogenomic Characterization of Human Early-Onset Gastric Cancer.** *Cell*.
-- LAIDD Mentoring Program (Year) – “Multi-omics integration of EOGC.”
-
-Contact: `<add-team-email@domain>` or the LAIDD mentoring cohort coordinators for questions or onboarding new contributors.
-
----
-
-## Quick Reference Commands
-
+### 1. Clone & Configure
 ```bash
-# Recompute TCGA bulk CPMs (Python)
-python scripts/make_signature_cpm.py
-
-# Create single-cell barcode reference for CIBERSORTx
-python scripts/create_cibersortx_reference.py --help
-
-# Run EcoTyper discovery workflow (example)
-Rscript EcoTyper_discovery_bulk.R config_discovery_bulk.yml
-
-# Produce Mun et al. Figure 2
-Rscript fig/Figure2/figure2_panels.R
+git clone <repo-url>
+cd <repo>
 ```
 
-Update this section with the commands you run most frequently to keep onboarding friction low.
+### 2. Software Requirements
+- **R ≥ 4.2** with packages listed in the analysis scripts (primarily `tidyverse`, `Seurat`, `Matrix`, `ggplot2`, `data.table`). Use `install_required_packages.R` if present in your environment (see `Deconvolution/ecotyper.R` for run-time dependencies).
+- **Python ≥ 3.9** with `snakemake`, `pandas`, `numpy`, `scipy`, `scanpy` (for mix-formatting utilities).
+- **Mass-spec tooling**: Thermo RAW → mzML conversion utilities (`raw2mzml.sh` wrapper assumes MSConvert availability) and SAGE CLI.
+
+Define environment variables (where needed) inside the shell scripts or your execution environment before launching the pipelines.
+
+---
+
+## Workflow Guide
+
+### A. Data Preprocessing
+1. **Proteomics**
+   - Set the RAW input directory inside `proteomics/convert_raws.sh`.
+   - Run the conversion & merging scripts (`raw2mzml.sh`, `merge_mzmls.sh`, `FindPathMergedmzml.sh`).
+   - Execute `GlobalProteomics.R`, `PhosphoProteomics.R`, or `GlycoProteomics.R` to build feature matrices; JSON files define SAGE parameters.
+2. **RNA-seq**
+   - Update `RNAseq/config.yaml` with sample sheets and reference paths.
+   - Launch the workflow from `Data preprocessing/RNAseq/`:
+     ```bash
+     bash snakemake.sh
+     ```
+   - Outputs (counts, QC reports) feed directly into downstream figures or deconvolution.
+
+### B. Figure Reproduction (Mun et al.)
+1. Enter `Analysis/`.
+2. Run the named R scripts (e.g. `Clustering2.R`, `RNA.R`). Each script assumes preprocessed data are accessible via relative paths or configured within the script header.
+3. Regenerate the corresponding figures referenced in the Mun et al. paper. Annotate any manual tweaks in the script comments for traceability.
+
+### C. Deconvolution
+1. **Prepare mixtures and references** using outputs from preprocessing (CPM matrices, single-cell signatures).
+2. **EcoTyper / CIBERSORTx** workflows:
+   - TCGA-only runs are controlled via `Deconvolution/TCGA/config_discovery_scRNA.yml`.
+   - Combined TCGA + EOGC experiments leverage `Deconvolution/TCGA_EOGC_combined/ecotyper.R`, together with `bulk_counts_CIBERSORTx.txt` and `sc_signature_CIBERSORTx.txt`.
+3. Results (EcoTyper zip archives, proportion tables, signatures) are stored alongside the configuration that generated them for reproducibility.
+
+---
+
+## Data Management & Reproducibility Tips
+
+- Keep raw data outside the repository; point the scripts to mounted datasets or cloud buckets.
+- When re-running pipelines, capture versions of external tools (MSConvert, SAGE, Snakemake).
+- Use Git branches for major analysis changes; store heavy outputs in zipped form or linkable cloud storage.
+
+---
+
+## Citing & Contact
+
+If you build on this repository, please cite:
+- **Mun, D.-G. et al.** (2019) *Proteogenomic Characterization of Human Early-Onset Gastric Cancer.* *Cell*.
+- LAIDD Mentoring Project, “Multi-omics analysis of early-onset gastric cancer” (year of mentorship cohort).
+
+For questions or onboarding requests, reach out to the LAIDD mentoring coordinators or the project lead listed in internal documentation.
+
+---
+
+## Handy Commands
+
+```bash
+# Launch RNA-seq Snakemake workflow
+cd "Data preprocessing/RNAseq"
+bash snakemake.sh
+
+# Convert Thermo RAW files to mzML (requires MSConvert)
+cd "Data preprocessing/proteomics"
+bash raw2mzml.sh
+
+# Run EcoTyper on the combined cohort
+cd "Deconvolution/TCGA_EOGC_combined"
+Rscript ecotyper.R
+
+# Recreate clustering figure
+cd Analysis
+Rscript Clustering2.R
+```
+
+Adapt these commands to your local paths and compute environment. Keep the README updated as the project evolves.
