@@ -1,11 +1,11 @@
-# LAIDD Mentoring Project — Early-Onset Gastric Cancer Multi-omics
+# LAIDD Mentoring Project - Early-Onset Gastric Cancer Multi-omics
 
-This repository houses the code and processed artefacts from the LAIDD mentoring project focused on multi-omics characterisation of early-onset gastric cancer (EOGC). Our work spans:
+This repository contains the code and derived artefacts from the LAIDD mentoring project on early-onset gastric cancer (EOGC). The work spans:
 
-1. Reproducing figures from **Mun et al., 2019** (*Proteogenomic Characterization of Human Early-Onset Gastric Cancer*).
-2. Extending the study with **bulk and single-cell deconvolution** across TCGA STAD and our EOGC cohort.
+1. Reproducing the analyses and figures from Mun et al., 2019 (*Proteogenomic Characterization of Human Early-Onset Gastric Cancer*).
+2. Extending the study with bulk and single-cell deconvolution that integrates TCGA STAD samples with our EOGC cohort.
 
-The repo has been reorganised to follow the life cycle of the analysis: ingest & QC raw data → reproduce published figures → perform new deconvolution experiments.
+The layout mirrors the analysis lifecycle: ingest and QC data, recreate published results, then run new deconvolution experiments.
 
 ---
 
@@ -13,82 +13,83 @@ The repo has been reorganised to follow the life cycle of the analysis: ingest &
 
 | Path | Highlights |
 | --- | --- |
-| `Data preprocessing/` | End-to-end processing pipelines for incoming data.<br> • `proteomics/` — shell wrappers for RAW→mzML conversion, mzML merging, and SAGE submission (all R-based summarisation scripts now reside under `Analysis/`).<br> • `RNAseq/` — Snakemake workflow (`Snakefile`, `config.yaml`, `snakemake.sh`) for RNA-seq alignment, quantification, and QC. |
-| `Analysis/` | R scripts and configs that recreate figures and produce proteomic summaries from Mun et al. (e.g. `Clustering2.R`, `fig1a_nonsynonymous_mut_gene.R`, `GlobalProteomics.R`, `GlycoProteomics.R`, `PhosphoProteomics.R`, `6_mRNA-protein correlation.R_251026`, plus the associated JSON parameter files). Outputs are written to the same directory or to user-specified paths inside the scripts. |
-| `Deconvolution/` | Artefacts and driver scripts for EcoTyper / CIBERSORTx runs.<br> • `TCGA/` — TCGA-only runs (`config_discovery_scRNA.yml`, `scRNA_annotation_input.txt`, EcoTyper archives).<br> • `TCGA_EOGC/` — experiments on our in-house cohort (bulk mixtures, EcoTyper outputs).<br> • `TCGA_EOGC_combined/` — combined-cohort inputs (e.g. `bulk_counts_CIBERSORTx.txt`, merged signatures, driver script `ecotyper.R`). |
-| `README.md` (this file) | Project overview, quick start, and workflow guidance. |
+| `Data preprocessing/` | Pipelines that turn raw inputs into analysis-ready data.<br>- `proteomics/` - shell wrappers for RAW-to-mzML conversion, mzML merging, SAGE submission, and the JSON configuration files (`globalProteomics.json`, `Glyco_globalProteomics.json`, `Phospho_globalProteomics.json`) consumed by the downstream R scripts.<br>- `RNAseq/` - Snakemake workflow (`Snakefile`, `config.yaml`, `snakemake.sh`) for RNA-seq alignment, quantification, and QC. |
+| `Analysis/` | R scripts that recreate figures and summarise proteomic data (for example `Clustering2.R`, `fig1a_nonsynonymous_mut_gene.R`, `GlobalProteomics.R`, `GlycoProteomics.R`, `PhosphoProteomics.R`, `6_mRNA-protein correlation.R_251026`, `RNA.R`). Outputs are written either alongside the scripts or to paths defined inside each script. |
+| `Deconvolution/` | Inputs, configuration files, and archives for EcoTyper and CIBERSORTx runs.<br>- `TCGA/` - TCGA-only discovery runs (`config_discovery_scRNA.yml`, `scRNA_annotation_input.txt`, zipped EcoTyper outputs).<br>- `TCGA_EOGC/` - analyses on the EOGC cohort alone (bulk mixtures, EcoTyper output archive).<br>- `TCGA_EOGC_combined/` - combined cohort experiments (for example `bulk_counts_CIBERSORTx.txt`, `sc_signature_CIBERSORTx.txt`, driver script `ecotyper.R`). |
+| `README.md` | Project overview, quick start instructions, and workflow guidance. |
 
-Large intermediate files (e.g. zipped EcoTyper outputs) are preserved for reproducibility but can be regenerated from the documented pipelines if storage is constrained.
+Large intermediate artefacts (for example EcoTyper zip archives) are stored for convenience and can be regenerated using the documented pipelines when required.
 
 ---
 
-## Quick Start
+## Getting Started
 
-### 1. Clone & Configure
+### Clone and configure
 ```bash
 git clone <repo-url>
 cd <repo>
 ```
 
-### 2. Software Requirements
-- **R ≥ 4.2** with packages listed in the analysis scripts (primarily `tidyverse`, `Seurat`, `Matrix`, `ggplot2`, `data.table`). Use `install_required_packages.R` if present in your environment (see `Deconvolution/ecotyper.R` for run-time dependencies).
-- **Python ≥ 3.9** with `snakemake`, `pandas`, `numpy`, `scipy`, `scanpy` (for mix-formatting utilities).
-- **Mass-spec tooling**: Thermo RAW → mzML conversion utilities (`raw2mzml.sh` wrapper assumes MSConvert availability) and SAGE CLI.
+### Software requirements
+- **R >= 4.2** with packages referenced by the analysis scripts (`tidyverse`, `Seurat`, `Matrix`, `ggplot2`, `data.table`, etc.). If available, run `install_required_packages.R` to install the common set. Consult `Deconvolution/ecotyper.R` for run-time dependencies.
+- **Python >= 3.9** with `snakemake`, `pandas`, `numpy`, `scipy`, and `scanpy` for mixture formatting utilities.
+- **Mass spectrometry tooling**: converters capable of handling Thermo RAW -> mzML (the provided shell wrappers assume MSConvert), plus SAGE CLI for spectral searches.
 
-Define environment variables (where needed) inside the shell scripts or your execution environment before launching the pipelines.
+Set any required environment variables before executing the shell scripts (for example paths to RAW files or SAGE binaries).
 
 ---
 
 ## Workflow Guide
 
-### A. Data Preprocessing
+### A. Data preprocessing
 1. **Proteomics**
-   - Set the RAW input directory inside `proteomics/convert_raws.sh`.
-   - Run the conversion & merging scripts (`raw2mzml.sh`, `merge_mzmls.sh`, `FindPathMergedmzml.sh`).
+   - Configure `proteomics/convert_raws.sh` with the location of incoming RAW files.
+   - Run the conversion and merge scripts (`raw2mzml.sh`, `merge_mzmls.sh`, `FindPathMergedmzml.sh`) to generate merged mzML files.
+   - Execute the R scripts in `Analysis/` (for example `Rscript Analysis/GlobalProteomics.R`). Each script expects its companion JSON configuration file in `Data preprocessing/proteomics/` and writes feature matrices to the destinations defined inside that JSON.
 2. **RNA-seq**
-   - Update `RNAseq/config.yaml` with sample sheets and reference paths.
+   - Update `RNAseq/config.yaml` with sample sheets and reference genome paths.
    - Launch the workflow from `Data preprocessing/RNAseq/`:
      ```bash
      bash snakemake.sh
      ```
-   - Outputs (counts, QC reports) feed directly into downstream figures or deconvolution.
+   - The resulting count tables and QC reports feed directly into downstream analyses and deconvolution.
 
-### B. Figure Reproduction (Mun et al.)
-1. Enter `Analysis/`.
-2. Run the named R scripts (e.g. `Clustering2.R`, `RNA.R`). Each script assumes preprocessed data are accessible via relative paths or configured within the script header.
-3. Regenerate the corresponding figures referenced in the Mun et al. paper. Annotate any manual tweaks in the script comments for traceability.
+### B. Figure reproduction (Mun et al.)
+1. Change into `Analysis/`.
+2. Run the figure-specific scripts (for example `Rscript Clustering2.R`, `Rscript fig1a_nonsynonymous_mut_gene.R`). Scripts assume the preprocessed datasets are reachable via the relative paths configured near the top of each file.
+3. Verify regenerated panels against the published figures and document any manual adjustments inside the scripts.
 
 ### C. Deconvolution
-1. **Prepare mixtures and references** using outputs from preprocessing (CPM matrices, single-cell signatures).
-2. **EcoTyper / CIBERSORTx** workflows:
-   - TCGA-only runs are controlled via `Deconvolution/TCGA/config_discovery_scRNA.yml`.
-   - Combined TCGA + EOGC experiments leverage `Deconvolution/TCGA_EOGC_combined/ecotyper.R`, together with `bulk_counts_CIBERSORTx.txt` and `sc_signature_CIBERSORTx.txt`.
-3. Results (EcoTyper zip archives, proportion tables, signatures) are stored alongside the configuration that generated them for reproducibility.
+1. Prepare bulk mixtures and single-cell references using outputs from preprocessing (CPM matrices, single-cell signatures).
+2. Configure and run EcoTyper or CIBERSORTx:
+   - TCGA-only discovery runs use `Deconvolution/TCGA/config_discovery_scRNA.yml`.
+   - Combined TCGA + EOGC experiments use `Deconvolution/TCGA_EOGC_combined/ecotyper.R` together with `bulk_counts_CIBERSORTx.txt` and `sc_signature_CIBERSORTx.txt`.
+3. Generated outputs (EcoTyper archives, cell-state proportions, signature matrices) are stored alongside the configurations that produced them for reproducibility.
 
 ---
 
-## Data Management & Reproducibility Tips
+## Data Management and Reproducibility Tips
 
-- Keep raw data outside the repository; point the scripts to mounted datasets or cloud buckets.
-- When re-running pipelines, capture versions of external tools (MSConvert, SAGE, Snakemake).
-- Use Git branches for major analysis changes; store heavy outputs in zipped form or linkable cloud storage.
+- Keep raw datasets outside the repository and point the scripts at mounted storage or cloud buckets.
+- Record versions of external tooling (MSConvert, SAGE, Snakemake, EcoTyper) when re-running pipelines.
+- Use Git branches for substantive analysis changes and store heavy outputs in compressed form or external storage when possible.
 
 ---
 
-## Citing & Contact
+## Citation and Contact
 
-If you build on this repository, please cite:
-- **Mun, D.-G. et al.** (2019) *Proteogenomic Characterization of Human Early-Onset Gastric Cancer.* *Cell*.
-- LAIDD Mentoring Project, “Multi-omics analysis of early-onset gastric cancer” (year of mentorship cohort).
+If you use this repository or derivative results, please cite:
+- Mun, D.-G. et al. (2019). *Proteogenomic Characterization of Human Early-Onset Gastric Cancer.* Cell.
+- LAIDD Mentoring Project, "Multi-omics analysis of early-onset gastric cancer" (insert cohort year).
 
-For questions or onboarding requests, reach out to the LAIDD mentoring coordinators or the project lead listed in internal documentation.
+For questions or to onboard collaborators, contact the LAIDD mentoring coordinators or the project lead documented internally.
 
 ---
 
 ## Handy Commands
 
 ```bash
-# Launch RNA-seq Snakemake workflow
+# Launch the RNA-seq Snakemake workflow
 cd "Data preprocessing/RNAseq"
 bash snakemake.sh
 
@@ -100,9 +101,9 @@ bash raw2mzml.sh
 cd "Deconvolution/TCGA_EOGC_combined"
 Rscript ecotyper.R
 
-# Recreate clustering figure
+# Recreate the clustering figure from Mun et al.
 cd Analysis
 Rscript Clustering2.R
 ```
 
-Adapt these commands to your local paths and compute environment. Keep the README updated as the project evolves.
+Adapt these commands to your environment and keep the README in sync with future structural changes.
