@@ -13,8 +13,8 @@ The repo has been reorganised to follow the life cycle of the analysis: ingest &
 
 | Path | Highlights |
 | --- | --- |
-| `Data preprocessing/` | End-to-end processing pipelines for incoming data.<br> • `proteomics/` — shell scripts, JSON configs, and R notebooks used to convert raw MS files (RAW→mzML), run SAGE, and assemble global, glyco, and phospho proteomic matrices.<br> • `RNAseq/` — Snakemake workflow (`Snakefile`, `config.yaml`, `snakemake.sh`) for RNA-seq alignment, quantification, and QC. |
-| `Analysis/` | R scripts that recreate figures and summary analyses from Mun et al. (e.g. `Clustering2.R`, `fig1a_nonsynonymous_mut_gene.R`, `6_mRNA-protein correlation.R_251026`). Outputs are written to the same directory or to user-specified paths inside the scripts. |
+| `Data preprocessing/` | End-to-end processing pipelines for incoming data.<br> • `proteomics/` — shell wrappers for RAW→mzML conversion, mzML merging, and SAGE submission (all R-based summarisation scripts now reside under `Analysis/`).<br> • `RNAseq/` — Snakemake workflow (`Snakefile`, `config.yaml`, `snakemake.sh`) for RNA-seq alignment, quantification, and QC. |
+| `Analysis/` | R scripts and configs that recreate figures and produce proteomic summaries from Mun et al. (e.g. `Clustering2.R`, `fig1a_nonsynonymous_mut_gene.R`, `GlobalProteomics.R`, `GlycoProteomics.R`, `PhosphoProteomics.R`, `6_mRNA-protein correlation.R_251026`, plus the associated JSON parameter files). Outputs are written to the same directory or to user-specified paths inside the scripts. |
 | `Deconvolution/` | Artefacts and driver scripts for EcoTyper / CIBERSORTx runs.<br> • `TCGA/` — TCGA-only runs (`config_discovery_scRNA.yml`, `scRNA_annotation_input.txt`, EcoTyper archives).<br> • `TCGA_EOGC/` — experiments on our in-house cohort (bulk mixtures, EcoTyper outputs).<br> • `TCGA_EOGC_combined/` — combined-cohort inputs (e.g. `bulk_counts_CIBERSORTx.txt`, merged signatures, driver script `ecotyper.R`). |
 | `README.md` (this file) | Project overview, quick start, and workflow guidance. |
 
@@ -45,7 +45,7 @@ Define environment variables (where needed) inside the shell scripts or your exe
 1. **Proteomics**
    - Set the RAW input directory inside `proteomics/convert_raws.sh`.
    - Run the conversion & merging scripts (`raw2mzml.sh`, `merge_mzmls.sh`, `FindPathMergedmzml.sh`).
-   - Execute `GlobalProteomics.R`, `PhosphoProteomics.R`, or `GlycoProteomics.R` to build feature matrices; JSON files define SAGE parameters.
+   - Execute `Analysis/GlobalProteomics.R`, `Analysis/PhosphoProteomics.R`, or `Analysis/GlycoProteomics.R` to build feature matrices (paired JSON files in the same folder define SAGE parameters).
 2. **RNA-seq**
    - Update `RNAseq/config.yaml` with sample sheets and reference paths.
    - Launch the workflow from `Data preprocessing/RNAseq/`:
