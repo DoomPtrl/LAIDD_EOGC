@@ -45,7 +45,6 @@ Define environment variables (where needed) inside the shell scripts or your exe
 1. **Proteomics**
    - Set the RAW input directory inside `proteomics/convert_raws.sh`.
    - Run the conversion & merging scripts (`raw2mzml.sh`, `merge_mzmls.sh`, `FindPathMergedmzml.sh`).
-   - From the repo root run the relevant R scripts located in `Analysis/` (e.g. `Rscript Analysis/GlobalProteomics.R`). Each script expects its paired JSON configuration in the same directory and writes the resulting feature matrices to the paths defined in that config.
 2. **RNA-seq**
    - Update `RNAseq/config.yaml` with sample sheets and reference paths.
    - Launch the workflow from `Data preprocessing/RNAseq/`:
